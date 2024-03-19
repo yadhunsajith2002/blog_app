@@ -27,46 +27,70 @@ class _BlogPageState extends State<BlogPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Blog App'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(context, AddNewBlogPage.route());
-            },
-            icon: const Icon(
-              CupertinoIcons.add_circled,
+    return SafeArea(
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              floating: true,
+              backgroundColor: Colors.black,
+              title: const Text('Blogs'),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(context, AddNewBlogPage.route());
+                  },
+                  icon: const Icon(
+                    CupertinoIcons.add_circled,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-      body: BlocConsumer<BlogBloc, BlogState>(
-        listener: (context, state) {
-          if (state is BlogFailure) {
-            showSnackBar(context, state.error);
-          }
-        },
-        builder: (context, state) {
-          if (state is BlogLoading) {
-            return const Loader();
-          }
-          if (state is BlogsDisplaySuccess) {
-            return ListView.builder(
-              itemCount: state.blogs.length,
-              itemBuilder: (context, index) {
-                final blog = state.blogs[index];
-                return BlogCard(
-                  blog: blog,
-                  color: index % 2 == 0
-                      ? AppPallete.gradient1
-                      : AppPallete.gradient2,
-                );
+            BlocConsumer<BlogBloc, BlogState>(
+              listener: (context, state) {
+                if (state is BlogFailure) {
+                  showSnackBar(context, state.error);
+                }
               },
-            );
-          }
-          return const SizedBox();
-        },
+              builder: (context, state) {
+                if (state is BlogLoading) {
+                  return const SliverToBoxAdapter(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Loader(),
+                      ],
+                    ),
+                  );
+                }
+                // if (state is BlogsDisplaySuccess) {
+                //   return SliverList(
+                //     delegate: SliverChildBuilderDelegate(
+                //       (context, index) {
+                //         final blog = state.blogs[index];
+                //         return BlogCard(blog: blog, color: Colors.grey);
+                //       },
+                //       childCount: state.blogs.length,
+                //     ),
+                //   );
+                // }
+                if (state is BlogsDisplaySuccess) {
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final reversedIndex = state.blogs.length - 1 - index;
+                        final blog = state.blogs[reversedIndex];
+                        return BlogCard(blog: blog, color: Colors.grey);
+                      },
+                      childCount: state.blogs.length,
+                    ),
+                  );
+                }
+                return const SliverToBoxAdapter(child: SizedBox());
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
